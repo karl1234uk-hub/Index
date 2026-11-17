@@ -49,11 +49,10 @@
     }
     .yt-host iframe {
       position: absolute;
-      width: 180px;
-      height: 180px;
-      left: 50%;
-      top: 50%;
-      transform: translate(-50%, -50%);
+      width: 200px;
+      height: 200px;
+      left: -78px;
+      top: -78px;
       border: 0;
       pointer-events: auto;
     }
@@ -333,13 +332,14 @@
           frame.setAttribute('allow', 'autoplay; encrypted-media');
         }
         if (!frame.hasAttribute('playsinline')) frame.setAttribute('playsinline', '');
+        if (!frame.hasAttribute('webkit-playsinline')) frame.setAttribute('webkit-playsinline', '');
         frame.title = 'Audio player';
         frame.style.setProperty('position', 'absolute', 'important');
-        frame.style.setProperty('width', '180px', 'important');
-        frame.style.setProperty('height', '180px', 'important');
-        frame.style.setProperty('left', '50%', 'important');
-        frame.style.setProperty('top', '50%', 'important');
-        frame.style.setProperty('transform', 'translate(-50%, -50%)', 'important');
+        frame.style.setProperty('width', '200px', 'important');
+        frame.style.setProperty('height', '200px', 'important');
+        frame.style.setProperty('left', '-78px', 'important');
+        frame.style.setProperty('top', '-78px', 'important');
+        frame.style.setProperty('transform', 'none', 'important');
         frame.style.setProperty('border', '0', 'important');
         frame.style.setProperty('pointer-events', 'auto', 'important');
         frame.style.setProperty('opacity', '1', 'important');
@@ -589,6 +589,7 @@
       frame.title = 'Audio player';
       frame.setAttribute('allow', 'autoplay; encrypted-media');
       frame.setAttribute('playsinline', '');
+      frame.setAttribute('webkit-playsinline', '');
       frame.setAttribute('referrerpolicy', 'strict-origin-when-cross-origin');
       var params = new URLSearchParams({
         enablejsapi: '1',
@@ -605,10 +606,21 @@
       frame.src = 'https://www.youtube.com/embed/' + TRACKS[0].id + '?' + params.toString();
       host.appendChild(frame);
       fitIframe(frame);
+      var vars = {
+        controls: 0,
+        playsinline: 1,
+        rel: 0,
+        modestbranding: 1,
+        fs: 0,
+        disablekb: 1,
+        iv_load_policy: 3
+      };
+      if (origin) vars.origin = origin;
       player = new YT.Player(frame, {
-        width: '180',
-        height: '180',
+        width: '200',
+        height: '200',
         host: 'https://www.youtube.com',
+        playerVars: vars,
         events: {
           onReady: onReady,
           onStateChange: onStateChange,
