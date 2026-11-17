@@ -257,6 +257,8 @@
     var errorHandledFor = '';
     var loadedAt = 0;
     var fitting = false;
+    var autoplayPending = false;
+    var autoplayTimer = null;
 
     function safeOrigin() {
       try {
@@ -382,8 +384,50 @@
       loadedAt = Date.now();
     }
 
+    function cancelAutoplayWatch() {
+      autoplayPending = false;
+      if (autoplayTimer) {
+        clearTimeout(autoplayTimer);
+        autoplayTimer = null;
+      }
+    }
+
+    function settleAutoplay() {
+      var state;
+      if (!autoplayPending) return;
+      state = readState();
+      cancelAutoplayWatch();
+      if (state !== -1 && state !== 5) return;
+      activated = false;
+      playing = false;
+      ignoreError = false;
+      failCount = 0;
+      current = 0;
+      primed = 0;
+      activeId = TRACKS[0].id;
+      errorHandledFor = activeId;
+      try {
+        if (player && player.cueVideoById) player.cueVideoById({ videoId: TRACKS[0].id });
+      } catch (err) {}
+      setStatus(HINT);
+      render();
+    }
+
+    function startFirstTrack() {
+      autoplayPending = true;
+      current = 0;
+      primed = 0;
+      activeId = TRACKS[0].id;
+      playing = false;
+      loadedAt = Date.now();
+      render();
+      try { player.playVideo(); } catch (err) {}
+      autoplayTimer = setTimeout(settleAutoplay, 2000);
+    }
+
     function cueVideo(i, fromUser, keepFailCount) {
       if (i < 0 || i >= TRACKS.length) return;
+      cancelAutoplayWatch();
       if (!keepFailCount) failCount = 0;
       ignoreError = false;
       rememberVideo(i);
@@ -410,6 +454,7 @@
 
     function beginPlayback(i, keepFailCount) {
       if (i < 0 || i >= TRACKS.length) return;
+      cancelAutoplayWatch();
       if (!keepFailCount) failCount = 0;
       ignoreError = false;
       current = i;
@@ -527,7 +572,13 @@
       try { player.setVolume(100); } catch (err) {}
       var state = readState();
       if (state === YT.PlayerState.PLAYING || state === YT.PlayerState.BUFFERING) {
-        if (state === YT.PlayerState.PLAYING) activated = true;
+        if (state === YT.PlayerState.PLAYING) {
+          cancelAutoplayWatch();
+          activated = true;
+        } else if (!autoplayTimer) {
+          autoplayPending = true;
+          autoplayTimer = setTimeout(settleAutoplay, 2000);
+        }
         syncIndexFromPlayer();
         if (current < 0) current = primed >= 0 ? primed : 0;
         playing = state === YT.PlayerState.PLAYING;
@@ -542,17 +593,14 @@
         cueVideo(pending, fromUser, false);
         return;
       }
-      cueVideo(0, false, true);
-      current = -1;
-      playing = false;
-      setStatus('SELECT A SONG TO BEGIN');
-      render();
+      startFirstTrack();
     }
 
     function onStateChange(event) {
       if (ignoreError) return;
       var state = event.data;
       if (state === YT.PlayerState.PLAYING) {
+        cancelAutoplayWatch();
         activated = true;
         syncIndexFromPlayer();
         if (current < 0) current = primed >= 0 ? primed : 0;
@@ -579,6 +627,7 @@
     }
 
     function onPlayerError() {
+      if (autoplayPending) return;
       advance(true);
     }
 
@@ -593,6 +642,7 @@
       frame.setAttribute('referrerpolicy', 'strict-origin-when-cross-origin');
       var params = new URLSearchParams({
         enablejsapi: '1',
+        autoplay: '1',
         controls: '0',
         playsinline: '1',
         rel: '0',
