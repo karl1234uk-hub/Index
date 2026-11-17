@@ -24,15 +24,38 @@
       box-shadow: 0 0 22px rgba(101,11,24,.2);
       box-sizing: border-box;
     }
+    .play-slot {
+      position: relative;
+      width: 44px;
+      height: 44px;
+      flex: 0 0 44px;
+    }
+    .play-slot:hover .btn,
+    .play-slot:active .btn {
+      background: #650B18;
+      color: white;
+    }
     .yt-host {
       position: absolute;
       left: 0;
       top: 0;
-      width: 1px;
-      height: 1px;
-      opacity: 0;
+      width: 44px;
+      height: 44px;
+      opacity: 0.01;
+      z-index: 4;
       overflow: hidden;
-      pointer-events: none;
+      pointer-events: auto;
+      touch-action: manipulation;
+    }
+    .yt-host iframe {
+      position: absolute;
+      width: 180px;
+      height: 180px;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      border: 0;
+      pointer-events: auto;
     }
     .heading {
       text-align: center;
@@ -176,7 +199,6 @@
 </head>
 <body>
   <div class="music-player">
-    <div class="yt-host" aria-hidden="true"><div id="yt-player"></div></div>
     <div class="heading">
       <h2>VELVET &amp; SIN</h2>
       <p>THE AFTER DARK PLAYLIST</p>
@@ -185,7 +207,10 @@
     <div id="now" class="now" aria-live="polite">LOADING PLAYER…</div>
     <div class="transport">
       <button type="button" class="btn" id="prev" aria-label="Previous">‹</button>
-      <button type="button" class="btn main" id="play" aria-label="Play">▶</button>
+      <div class="play-slot">
+        <button type="button" class="btn main" id="play" aria-label="Play">▶</button>
+        <div class="yt-host" id="yt-host" aria-hidden="true"></div>
+      </div>
       <button type="button" class="btn" id="next" aria-label="Next">›</button>
     </div>
     <div class="progress">
@@ -217,19 +242,22 @@
     var elapsedEl = document.getElementById('elapsed');
     var durationEl = document.getElementById('duration');
 
+    var HINT = 'Tap \u25B6 to start';
     var player = null;
     var playerReady = false;
+    var activated = false;
     var current = -1;
+    var primed = 0;
     var playing = false;
-    var wantPlay = false;
     var queued = -1;
+    var queueUser = false;
     var failCount = 0;
     var ignoreError = false;
     var activeId = '';
     var endHandledFor = '';
     var errorHandledFor = '';
     var loadedAt = 0;
-    var nudge = 0;
+    var fitting = false;
 
     function safeOrigin() {
       try {
@@ -297,18 +325,38 @@
       try { return player.getPlayerState(); } catch (err) { return -1; }
     }
 
+    function fitIframe(frame) {
+      if (!frame || fitting) return;
+      fitting = true;
+      try {
+        if (frame.getAttribute('allow') !== 'autoplay; encrypted-media') {
+          frame.setAttribute('allow', 'autoplay; encrypted-media');
+        }
+        if (!frame.hasAttribute('playsinline')) frame.setAttribute('playsinline', '');
+        frame.title = 'Audio player';
+        frame.style.setProperty('position', 'absolute', 'important');
+        frame.style.setProperty('width', '180px', 'important');
+        frame.style.setProperty('height', '180px', 'important');
+        frame.style.setProperty('left', '50%', 'important');
+        frame.style.setProperty('top', '50%', 'important');
+        frame.style.setProperty('transform', 'translate(-50%, -50%)', 'important');
+        frame.style.setProperty('border', '0', 'important');
+        frame.style.setProperty('pointer-events', 'auto', 'important');
+        frame.style.setProperty('opacity', '1', 'important');
+      } catch (err) {}
+      fitting = false;
+    }
+
     function hardenIframe() {
       try {
-        var frame = player.getIframe && player.getIframe();
+        var host = document.getElementById('yt-host');
+        var frame = (player && player.getIframe && player.getIframe()) || (host && host.querySelector('iframe'));
         if (!frame) return;
-        frame.setAttribute('allow', 'autoplay; encrypted-media');
-        frame.setAttribute('playsinline', '');
-        frame.width = '1';
-        frame.height = '1';
-        frame.style.width = '1px';
-        frame.style.height = '1px';
-        frame.style.border = '0';
-        frame.title = 'Audio player';
+        fitIframe(frame);
+        if (frame.__fitBound) return;
+        frame.__fitBound = true;
+        var obs = new MutationObserver(function () { fitIframe(frame); });
+        obs.observe(frame, { attributes: true, attributeFilter: ['style', 'allow', 'width', 'height'] });
       } catch (err) {}
     }
 
@@ -326,15 +374,46 @@
       return !seen || seen === activeId;
     }
 
-    function beginPlayback(i) {
-      nudge = 0;
-      wantPlay = true;
-      ignoreError = false;
-      current = i;
+    function rememberVideo(i) {
       activeId = TRACKS[i].id;
+      primed = i;
       endHandledFor = '';
       errorHandledFor = '';
       loadedAt = Date.now();
+    }
+
+    function cueVideo(i, fromUser, keepFailCount) {
+      if (i < 0 || i >= TRACKS.length) return;
+      if (!keepFailCount) failCount = 0;
+      ignoreError = false;
+      rememberVideo(i);
+      playing = false;
+      if (fromUser) current = i;
+      if (!playerReady || !player || typeof player.cueVideoById !== 'function') {
+        queued = i;
+        queueUser = !!fromUser;
+        setStatus(fromUser ? HINT : 'LOADING PLAYER…');
+        render();
+        return;
+      }
+      queued = -1;
+      try {
+        player.cueVideoById({ videoId: activeId });
+      } catch (err) {
+        advance(true);
+        return;
+      }
+      if (fromUser) setStatus(HINT);
+      else if (!activated && current < 0) setStatus('SELECT A SONG TO BEGIN');
+      render();
+    }
+
+    function beginPlayback(i, keepFailCount) {
+      if (i < 0 || i >= TRACKS.length) return;
+      if (!keepFailCount) failCount = 0;
+      ignoreError = false;
+      current = i;
+      rememberVideo(i);
       playing = true;
       resetProgress();
       setStatus('NOW PLAYING: ' + TRACKS[i].title);
@@ -346,25 +425,13 @@
       }
     }
 
-    function playIndex(i, keepFailCount) {
-      if (i < 0 || i >= TRACKS.length) return;
-      if (!keepFailCount) failCount = 0;
-      ignoreError = false;
-      current = i;
-      if (!playerReady || !player || typeof player.loadVideoById !== 'function') {
-        queued = i;
-        playing = false;
-        setStatus('LOADING PLAYER…');
-        render();
-        return;
-      }
-      queued = -1;
-      beginPlayback(i);
+    function choose(i, keepFailCount) {
+      if (!activated) cueVideo(i, true, keepFailCount);
+      else beginPlayback(i, keepFailCount);
     }
 
     function halt() {
       ignoreError = true;
-      wantPlay = false;
       playing = false;
       current = -1;
       queued = -1;
@@ -377,7 +444,7 @@
     }
 
     function advance(isError) {
-      if (ignoreError || current < 0 || !activeId) return;
+      if (ignoreError || !activeId) return;
       if (!eventIsCurrent()) return;
       if (isError) {
         if (errorHandledFor === activeId) return;
@@ -400,25 +467,29 @@
         endHandledFor = activeId;
         failCount = 0;
       }
-      playIndex((current + 1) % TRACKS.length, true);
+      var base = current >= 0 ? current : (primed >= 0 ? primed : 0);
+      var next = (base + 1) % TRACKS.length;
+      if (!activated) cueVideo(next, current >= 0, true);
+      else beginPlayback(next, true);
     }
 
     function togglePlay() {
-      if (current < 0 || !playerReady) {
-        playIndex(current < 0 ? 0 : current, false);
+      if (!activated) {
+        cueVideo(current >= 0 ? current : (primed >= 0 ? primed : 0), true, false);
+        return;
+      }
+      if (current < 0) {
+        beginPlayback(primed >= 0 ? primed : 0, false);
         return;
       }
       var state = readState();
       if (state === YT.PlayerState.PLAYING || state === YT.PlayerState.BUFFERING) {
-        wantPlay = false;
         playing = false;
         setStatus('PAUSED: ' + TRACKS[current].title);
         render();
         try { player.pauseVideo(); } catch (err) {}
         return;
       }
-      wantPlay = true;
-      nudge = 0;
       if (state === YT.PlayerState.PAUSED || state === YT.PlayerState.CUED) {
         playing = true;
         setStatus('NOW PLAYING: ' + TRACKS[current].title);
@@ -426,53 +497,81 @@
         try { player.playVideo(); } catch (err) {}
         return;
       }
-      beginPlayback(current);
+      beginPlayback(current, false);
     }
 
     function step(delta) {
       var count = TRACKS.length;
       var index = current < 0 ? (delta < 0 ? count - 1 : 0) : (current + delta + count) % count;
-      playIndex(index, false);
+      if (!activated) cueVideo(index, true, false);
+      else beginPlayback(index, false);
+    }
+
+    function syncIndexFromPlayer() {
+      var id = videoIdNow();
+      if (!id) return;
+      var i;
+      for (i = 0; i < TRACKS.length; i++) {
+        if (TRACKS[i].id === id) {
+          current = i;
+          primed = i;
+          activeId = id;
+          return;
+        }
+      }
     }
 
     function onReady() {
       playerReady = true;
       hardenIframe();
       try { player.setVolume(100); } catch (err) {}
-      if (queued >= 0) {
-        var pending = queued;
-        queued = -1;
-        beginPlayback(pending);
-        return;
-      }
-      if (current < 0) setStatus('SELECT A SONG TO BEGIN');
-    }
-
-    function onStateChange(event) {
-      if (ignoreError || current < 0 || !TRACKS[current]) return;
-      var state = event.data;
-      if (state === YT.PlayerState.PLAYING) {
-        playing = true;
-        wantPlay = true;
-        nudge = 0;
-        failCount = 0;
-        setStatus('NOW PLAYING: ' + TRACKS[current].title);
+      var state = readState();
+      if (state === YT.PlayerState.PLAYING || state === YT.PlayerState.BUFFERING) {
+        if (state === YT.PlayerState.PLAYING) activated = true;
+        syncIndexFromPlayer();
+        if (current < 0) current = primed >= 0 ? primed : 0;
+        playing = state === YT.PlayerState.PLAYING;
+        if (playing && TRACKS[current]) setStatus('NOW PLAYING: ' + TRACKS[current].title);
         render();
         return;
       }
+      if (queued >= 0) {
+        var pending = queued;
+        var fromUser = queueUser;
+        queued = -1;
+        cueVideo(pending, fromUser, false);
+        return;
+      }
+      cueVideo(0, false, true);
+      current = -1;
+      playing = false;
+      setStatus('SELECT A SONG TO BEGIN');
+      render();
+    }
+
+    function onStateChange(event) {
+      if (ignoreError) return;
+      var state = event.data;
+      if (state === YT.PlayerState.PLAYING) {
+        activated = true;
+        syncIndexFromPlayer();
+        if (current < 0) current = primed >= 0 ? primed : 0;
+        playing = true;
+        failCount = 0;
+        if (TRACKS[current]) setStatus('NOW PLAYING: ' + TRACKS[current].title);
+        render();
+        hardenIframe();
+        return;
+      }
       if (state === YT.PlayerState.PAUSED) {
-        if (wantPlay && nudge < 2) {
-          nudge += 1;
-          try { player.playVideo(); } catch (err) {}
-          return;
-        }
+        if (!activated || current < 0 || !TRACKS[current]) return;
         playing = false;
-        wantPlay = false;
         setStatus('PAUSED: ' + TRACKS[current].title);
         render();
         return;
       }
       if (state === YT.PlayerState.ENDED) {
+        if (!activated) return;
         playing = false;
         render();
         advance(false);
@@ -484,28 +583,39 @@
     }
 
     function onYouTubeIframeAPIReady() {
-      var vars = {
-        controls: 0,
-        playsinline: 1,
-        rel: 0,
-        modestbranding: 1,
-        fs: 0,
-        disablekb: 1,
-        iv_load_policy: 3
-      };
+      var host = document.getElementById('yt-host');
+      var frame = document.createElement('iframe');
+      frame.id = 'yt-player';
+      frame.title = 'Audio player';
+      frame.setAttribute('allow', 'autoplay; encrypted-media');
+      frame.setAttribute('playsinline', '');
+      frame.setAttribute('referrerpolicy', 'strict-origin-when-cross-origin');
+      var params = new URLSearchParams({
+        enablejsapi: '1',
+        controls: '0',
+        playsinline: '1',
+        rel: '0',
+        modestbranding: '1',
+        fs: '0',
+        disablekb: '1',
+        iv_load_policy: '3'
+      });
       var origin = safeOrigin();
-      if (origin) vars.origin = origin;
-      player = new YT.Player('yt-player', {
-        width: '1',
-        height: '1',
-        host: 'https://www.youtube-nocookie.com',
-        playerVars: vars,
+      if (origin) params.set('origin', origin);
+      frame.src = 'https://www.youtube.com/embed/' + TRACKS[0].id + '?' + params.toString();
+      host.appendChild(frame);
+      fitIframe(frame);
+      player = new YT.Player(frame, {
+        width: '180',
+        height: '180',
+        host: 'https://www.youtube.com',
         events: {
           onReady: onReady,
           onStateChange: onStateChange,
           onError: onPlayerError
         }
       });
+      hardenIframe();
     }
 
     function paintTime(currentTime, duration) {
@@ -541,8 +651,12 @@
       }
       if (!row) return;
       var index = Number(row.getAttribute('data-i'));
+      if (!activated) {
+        choose(index, false);
+        return;
+      }
       if (index === current) togglePlay();
-      else playIndex(index, false);
+      else choose(index, false);
     });
 
     playBtn.addEventListener('click', togglePlay);
