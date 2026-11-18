@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>For Wifey</title>
+<link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Cormorant+Garamond:ital,wght@0,500;1,500&display=swap" rel="stylesheet">
+<style>
+html,body{margin:0;height:100%;background:#0a0306;}
+body{display:flex;align-items:center;justify-content:center;font-family:"Cormorant Garamond",Georgia,serif;color:#f3dcd4;
+background:radial-gradient(ellipse at center,#2a0812 0%,#12040a 55%,#070204 100%);}
+.card{width:92%;max-width:440px;text-align:center;padding:34px 22px 28px;box-sizing:border-box;
+border:1px solid #b76e79;border-radius:10px;background:linear-gradient(180deg,#1c070e,#0e0407);
+box-shadow:0 0 18px #7a1533aa,inset 0 0 30px #00000099;}
+h1{font-family:"Great Vibes",cursive;font-weight:400;font-size:52px;margin:0 0 6px;
+background:linear-gradient(90deg,#e8b4a0,#f7d9c9,#c98b80);-webkit-background-clip:text;background-clip:text;color:transparent;
+text-shadow:0 0 18px #b76e7944;}
+.fmt{font-size:20px;letter-spacing:2px;color:#e8b4a0;margin-bottom:16px}
+input{width:100%;box-sizing:border-box;padding:12px;font-size:20px;text-align:center;letter-spacing:4px;
+background:#090205;color:#f7d9c9;border:1px solid #7a2a3a;border-radius:6px;outline:none;font-family:inherit}
+input:focus{border-color:#e8b4a0;box-shadow:0 0 10px #b76e7966}
+button{margin-top:12px;width:100%;padding:11px;font-size:18px;font-family:inherit;cursor:pointer;color:#f7d9c9;
+background:linear-gradient(180deg,#5a1424,#2c0710);border:1px solid #b76e79;border-radius:6px}
+button:hover{background:linear-gradient(180deg,#7a1c32,#3d0a17)}
+.hint{margin-top:22px;font-size:17px;font-style:italic;color:#d6a99f;line-height:1.4}
+.err{min-height:22px;margin-top:10px;color:#ff8fa3;font-style:italic;font-size:16px}
+#open{display:none}
+#vid{width:100%;border:1px solid #b76e79;border-radius:6px;box-shadow:0 0 16px #7a1533;display:block}
+.msg{font-family:"Great Vibes",cursive;font-size:36px;line-height:1.2;margin:18px 0 6px;color:#f7d9c9;text-shadow:0 0 10px #b76e79}
+.sig{font-size:18px;font-style:italic;color:#e8b4a0}
+.again{display:inline-block;margin-top:14px;color:#c98b80;font-size:14px;cursor:pointer;text-decoration:underline}
+</style></head><body>
+<div class="card">
+ <div id="lock">
+  <h1>For Wifey</h1>
+  <div class="fmt">DD/MM/YY</div>
+  <input id="pw" inputmode="numeric" autocomplete="off" maxlength="8" placeholder="&bull;&bull; &bull;&bull; &bull;&bull;">
+  <button id="go">Open your letter</button>
+  <div class="err" id="err"></div>
+  <div class="hint">It's the same key as yours, my love&hellip;<br>If you're not Sara, nice try. This one isn't for you 😏</div>
+ </div>
+ <div id="open">
+  <img id="vid" alt="For Wifey">
+  <div class="msg" id="msg"></div>
+  <div class="sig" id="sig"></div>
+  <span class="again" id="lockit">lock it again</span>
+ </div>
+</div>
+<script>
+const B={"s": "DU5V8fyWRwXz9iT7glhRZA==", "n": "gudspVnpVXa6yGBM", "i": 250000, "c": "usqdqMnjyPJNMnnNYe2nPiLJIxzXYHQjf9HiZnm2XA8LvQuYGkmiheCkL6K5oy3/YplLj+ie8bERoQw5EWkUZ5/jv8Fbj4bFwxpGPJrrzOhWao3PGP20KOjvoU081f9G1vHGDE4YVEoSbZbOT+DGiQXwuZd1E4yTYKh+U1NNATzwbbnJogdSbYvwVU5A4nZXdqD4R3CFkWqqFC8s/N8aGfljh+e+yYrLf2ET1aE3fWF86fSNQvpVmJ8jxF53e7w="};
+const d=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
+async function unlock(){
+ const pw=document.getElementById('pw').value.replace(/\D/g,'');
+ const err=document.getElementById('err');err.textContent='';
+ if(!window.crypto||!crypto.subtle){err.textContent='This browser can\u2019t open it, try another one.';return}
+ try{
+  const base=await crypto.subtle.importKey('raw',new TextEncoder().encode(pw),'PBKDF2',false,['deriveKey']);
+  const key=await crypto.subtle.deriveKey({name:'PBKDF2',salt:d(B.s),iterations:B.i,hash:'SHA-256'},base,{name:'AES-GCM',length:256},false,['decrypt']);
+  const pt=await crypto.subtle.decrypt({name:'AES-GCM',iv:d(B.n)},key,d(B.c));
+  const o=JSON.parse(new TextDecoder().decode(pt));
+  const v=document.getElementById('vid');
+  v.src=o.gif;
+  document.getElementById('msg').textContent=o.msg;
+  document.getElementById('sig').textContent=o.sig;
+  document.getElementById('lock').style.display='none';
+  document.getElementById('open').style.display='block';
+ }catch(e){err.textContent='Not quite, sweetheart\u2026 try again 😘'}
+}
+document.getElementById('go').onclick=unlock;
+document.getElementById('pw').addEventListener('keydown',e=>{if(e.key==='Enter')unlock()});
+document.getElementById('lockit').onclick=()=>{location.reload()};
+</script>
+</body></html>
