@@ -87,7 +87,7 @@ footer{padding:6px 12px 14px;font-family:"Great Vibes","Snell Roundhand","Brush 
 (function(){
 "use strict";
 /* weights: common 10, rare 4, golden 2, nothing 3 */
-var C=10,R=4,G=2;
+var C=30,R=100/6,G=50;
 var CARDS=[
  {id:"snuggle",e:"🤗",t:"1 snuggle",w:C},
  {id:"kisses100",e:"💋",t:"100 kisses",w:C,fine:"(paid in instalments if need be)"},
@@ -119,7 +119,7 @@ var CARDS=[
  {id:"wish",e:"🧞",t:"one wish granted",w:G,gold:1,fine:"(no wishing for more wishes)"},
  {id:"yes",e:"💍",t:"a “yes” to anything",w:G,gold:1,fine:"(within reason 😇)"},
  {id:"spoiled",e:"👑",t:"an evening of being utterly spoiled",w:G,gold:1,long:1},
- {id:"nothing",e:"😈",t:"…absolutely nothing",w:3,nothing:1,fine:"Better luck tomorrow"}
+ {id:"nothing",e:"😈",t:"…absolutely nothing",w:100,nothing:1,fine:"Better luck tomorrow"}
 ];
 var KEY="karlos_daily_card_v1", N=7, CW=190;
 var $=function(i){return document.getElementById(i)};
