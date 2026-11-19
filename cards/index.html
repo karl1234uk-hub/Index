@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Pick a Card, My Love</title>
+<link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Cormorant+Garamond:ital,wght@0,500;0,700;1,500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;min-height:100%;background:#0a0306}
+body{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:space-between;
+font-family:"Cormorant Garamond",Georgia,serif;color:#f3dcd4;overflow-x:hidden;position:relative;
+background:radial-gradient(ellipse at 50% 40%,#2e0914 0%,#14040b 55%,#070204 100%)}
+#snow{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:0}
+.flake{position:absolute;top:-20px;color:#cfe3f2;opacity:.0;animation:fall linear infinite;text-shadow:0 0 6px #9cc9e8aa}
+@keyframes fall{0%{transform:translateY(-20px) translateX(0) rotate(0);opacity:0}10%{opacity:.55}90%{opacity:.35}100%{transform:translateY(660px) translateX(24px) rotate(180deg);opacity:0}}
+header,main,footer{position:relative;z-index:1;width:100%;max-width:460px;text-align:center}
+header{padding:16px 12px 0}
+h1{font-family:"Great Vibes","Snell Roundhand","Brush Script MT",cursive;font-weight:400;font-size:clamp(36px,10vw,46px);line-height:1.05;margin:0;
+background:linear-gradient(90deg,#e8b4a0,#f9dccd,#c98b80);-webkit-background-clip:text;background-clip:text;color:transparent;
+filter:drop-shadow(0 0 14px #b76e7955)}
+.sub{margin:4px 0 0;font-size:18px;font-style:italic;color:#d6a99f;min-height:24px;letter-spacing:.3px}
+.stage{position:relative;width:100%;height:340px;perspective:1100px;margin-top:2px}
+.card{position:absolute;left:50%;top:50%;width:190px;height:280px;padding:0;border:0;background:none;cursor:pointer;outline:none;
+--x:0px;--y:0px;--r:0deg;--s:.5;--lift:0px;
+transform:translate(-50%,-50%) translate(var(--x),calc(var(--y) + var(--lift))) rotate(var(--r)) scale(var(--s));
+transition:transform .6s cubic-bezier(.2,.8,.2,1),opacity .5s ease;font-family:inherit;color:inherit;
+animation:deal .7s cubic-bezier(.2,.8,.2,1) backwards;animation-delay:calc(var(--i) * 60ms)}
+@keyframes deal{from{transform:translate(-50%,-50%) translate(0,40px) rotate(0) scale(.2);opacity:0}}
+.stage.ready .card:hover,.stage.ready .card:focus-visible{--lift:-16px}
+.stage.ready .card:hover .back,.stage.ready .card:focus-visible .back{box-shadow:0 0 0 2px #f2c7b5,0 0 30px 4px #d63a5c99}
+.flip{position:absolute;inset:0;transform-style:preserve-3d;transition:transform .95s cubic-bezier(.3,.7,.2,1)}
+.card.flipped .flip{transform:rotateY(180deg)}
+.card.gone{opacity:0;pointer-events:none;--lift:70px}
+.face{position:absolute;inset:0;border-radius:14px;backface-visibility:hidden;-webkit-backface-visibility:hidden;overflow:hidden}
+.back{background:
+radial-gradient(circle at 50% 50%,#7c1630 0%,#4d0b1c 60%,#2f0510 100%);
+border:3px solid #b76e79;box-shadow:0 6px 18px #000a,inset 0 0 0 7px #2f0510,inset 0 0 0 8px #b76e7988;transition:box-shadow .3s}
+.back::before{content:"";position:absolute;inset:14px;border:1px solid #e8b4a0aa;border-radius:8px;
+background:repeating-linear-gradient(45deg,#ffffff08 0 6px,transparent 6px 12px),repeating-linear-gradient(-45deg,#00000030 0 6px,transparent 6px 12px)}
+.back::after{content:"\2744";position:absolute;left:50%;top:50%;width:92px;height:92px;margin:-46px 0 0 -46px;border-radius:50%;
+display:flex;align-items:center;justify-content:center;font-size:46px;color:#f9dccd;line-height:1;
+background:radial-gradient(circle,#8d1a38,#4d0b1c);border:2px solid #e8b4a0;box-shadow:0 0 18px #d63a5c88,inset 0 0 12px #000a;text-shadow:0 0 12px #bfe3ff}
+.front{transform:rotateY(180deg);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px 16px;text-align:center;
+background:linear-gradient(170deg,#2b0a14 0%,#170509 100%);border:3px solid #b76e79;box-shadow:0 0 28px #b76e7977,0 8px 22px #000b,inset 0 0 0 6px #170509,inset 0 0 0 7px #b76e7955}
+.front .pre{font-style:italic;font-size:16px;color:#d6a99f;letter-spacing:.4px}
+.front .em{font-size:50px;line-height:1.1;margin:8px 0 6px;filter:drop-shadow(0 0 10px #d63a5c88)}
+.front .big{font-weight:700;font-size:25px;line-height:1.12;
+background:linear-gradient(180deg,#fbe3d6,#e8b4a0 60%,#c98b80);-webkit-background-clip:text;background-clip:text;color:transparent}
+.front .big.long{font-size:21px}
+.front .tag{margin-top:12px;font-size:12px;letter-spacing:3px;text-transform:uppercase;color:#b76e79}
+.front .fine{margin-top:6px;font-size:14px;font-style:italic;color:#c98b80}
+.rare .front{border-color:#e8b4a0;box-shadow:0 0 30px #e8b4a099,0 8px 22px #000b,inset 0 0 0 6px #170509,inset 0 0 0 7px #e8b4a0aa}
+.rare .tag{color:#f0c4b4}
+.golden .front{border-color:#f2cf7a;background:linear-gradient(170deg,#3a1a0c 0%,#1d0a06 100%);
+box-shadow:0 0 36px #f2cf7acc,0 8px 22px #000b,inset 0 0 0 6px #1d0a06,inset 0 0 0 7px #f2cf7acc}
+.golden .big{background:linear-gradient(180deg,#fff3c4,#f2cf7a 55%,#c9973a);-webkit-background-clip:text;background-clip:text;color:transparent}
+.golden .tag{letter-spacing:2px;white-space:nowrap;color:#f2cf7a;text-shadow:0 0 8px #f2cf7a88}
+.golden .front::after{content:"";position:absolute;inset:-40%;pointer-events:none;
+background:linear-gradient(115deg,transparent 40%,#fff6cf55 50%,transparent 60%);animation:sheen 2.6s ease-in-out infinite}
+@keyframes sheen{0%{transform:translateX(-60%)}60%,100%{transform:translateX(60%)}}
+.nothing .front .big{background:linear-gradient(180deg,#d9c6c6,#9a8486);-webkit-background-clip:text;background-clip:text;color:transparent}
+.nothing .front{border-color:#7a2a3a}
+main{padding:0 14px;min-height:78px}
+.msg{font-size:18px;font-style:italic;color:#d6a99f;line-height:1.3;min-height:24px}
+.count{margin-top:6px;font-size:15px;letter-spacing:2px;text-transform:uppercase;color:#b76e79;display:none}
+.count b{display:inline-block;min-width:92px;font-size:24px;letter-spacing:3px;font-weight:700;color:#f7d9c9;text-shadow:0 0 12px #b76e79;font-variant-numeric:lining-nums tabular-nums;font-feature-settings:'lnum' 1,'tnum' 1}
+.locked .count{display:block}
+.note{margin-top:4px;font-size:13px;color:#8d6a68;font-style:italic;display:none}
+footer{padding:6px 12px 14px;font-family:"Great Vibes","Snell Roundhand","Brush Script MT",cursive;font-size:22px;color:#c98b80;text-shadow:0 0 10px #b76e7966}
+.pop{position:absolute;pointer-events:none;z-index:5;left:50%;top:50%;font-size:20px;opacity:0;animation:pop 1.6s ease-out forwards}
+@keyframes pop{0%{opacity:0;transform:translate(-50%,-50%) scale(.4)}15%{opacity:1}100%{opacity:0;transform:translate(calc(-50% + var(--dx)),calc(-50% + var(--dy))) scale(1.1) rotate(var(--rot))}}
+@media (prefers-reduced-motion:reduce){.flake,.golden .front::after{animation:none}.card,.flip{transition-duration:.01s}.card{animation:none}}
+</style></head><body>
+<div id="snow" aria-hidden="true"></div>
+<header>
+ <h1>Pick a Card, My Love</h1>
+ <p class="sub" id="sub">One card a day. Choose wisely&hellip; or don&rsquo;t 😏</p>
+</header>
+<main id="main">
+ <div class="stage" id="stage" role="group" aria-label="Seven face-down cards"></div>
+ <div class="msg" id="msg"></div>
+ <div class="count" id="count">Next pick in <b id="clock">--:--:--</b></div>
+ <div class="note" id="note">(Saved on this device only.)</div>
+</main>
+<footer>I am but a whisper in the wind.</footer>
+<script>
+(function(){
+"use strict";
+/* weights: common 10, rare 4, golden 2, nothing 3 */
+var C=10,R=4,G=2;
+var CARDS=[
+ {id:"snuggle",e:"🤗",t:"1 snuggle",w:C},
+ {id:"kisses100",e:"💋",t:"100 kisses",w:C,fine:"(paid in instalments if need be)"},
+ {id:"hug",e:"🫂",t:"a hug",w:C},
+ {id:"lovebite",e:"🧛",t:"1 lovebite",w:C,fine:"(wear it with pride 😈)"},
+ {id:"forehead",e:"😘",t:"a forehead kiss",w:C},
+ {id:"slowdance",e:"💃",t:"a slow dance",w:C},
+ {id:"backrub",e:"💆",t:"a back rub",w:C},
+ {id:"blanket",e:"🧣",t:"cuddles under a blanket",w:C,long:1},
+ {id:"whisper",e:"🤫",t:"a whispered secret",w:C},
+ {id:"hands",e:"🤝",t:"holding hands all day",w:C,long:1},
+ {id:"bum",e:"🍑",t:"a cheeky bum squeeze",w:C,long:1,fine:"(strictly one, no peeking 😇)"},
+ {id:"movie",e:"🎬",t:"a movie night",w:C,fine:"(you pick, no complaints)"},
+ {id:"note",e:"💌",t:"a love note",w:C},
+ {id:"attention",e:"👀",t:"ten minutes of undivided attention",w:C,long:1,fine:"(phones away 😏)"},
+ {id:"stolen",e:"😏",t:"a stolen kiss",w:C,fine:"(when you least expect it)"},
+ {id:"neck",e:"🌙",t:"a neck kiss",w:C,fine:"(expect goosebumps)"},
+ {id:"lap",e:"😈",t:"a lap sit",w:C,fine:"(the comfy throne)"},
+ {id:"rose",e:"🌹",t:"a rose",w:C},
+ {id:"cherry",e:"🍒",t:"a cherry kiss",w:C,fine:"(sweet, then dangerous)"},
+ {id:"tease",e:"😇",t:"a free tease",w:C,fine:"(can't promise you'll behave)"},
+ {id:"frost",e:"❄️",t:"a frosty ice-demon kiss",w:R,long:1,fine:"(cold lips, warm heart)"},
+ {id:"bubble",e:"🛁",t:"a bubble bath",w:R,fine:"(candles included)"},
+ {id:"compliment",e:"✨",t:"being called beautiful or handsome all day",w:R,long:1},
+ {id:"argument",e:"🏆",t:"winning an argument",w:R,fine:"(use it wisely)"},
+ {id:"slowkiss",e:"🥀",t:"a long, slow, breathless kiss",w:R,long:1},
+ {id:"breakfast",e:"🥞",t:"breakfast in bed",w:R},
+ {id:"anywhere",e:"😏",t:"a kiss anywhere you choose",w:G,gold:1,long:1,fine:"(anywhere. I said anywhere 😈)"},
+ {id:"wish",e:"🧞",t:"one wish granted",w:G,gold:1,fine:"(no wishing for more wishes)"},
+ {id:"yes",e:"💍",t:"a “yes” to anything",w:G,gold:1,fine:"(within reason 😇)"},
+ {id:"spoiled",e:"👑",t:"an evening of being utterly spoiled",w:G,gold:1,long:1},
+ {id:"nothing",e:"😈",t:"…absolutely nothing",w:3,nothing:1,fine:"Better luck tomorrow"}
+];
+var KEY="karlos_daily_card_v1", N=7, CW=190;
+var $=function(i){return document.getElementById(i)};
+var stage=$("stage"),sub=$("sub"),msg=$("msg"),count=$("count"),clock=$("clock"),note=$("note");
+var mem=null; /* fallback if localStorage is blocked in the embed */
+function today(){var d=new Date();return d.getFullYear()+"-"+("0"+(d.getMonth()+1)).slice(-2)+"-"+("0"+d.getDate()).slice(-2)}
+function load(){var raw=null;try{raw=localStorage.getItem(KEY)}catch(e){raw=null}
+ if(!raw&&mem)raw=mem;
+ if(!raw)return null;try{var o=JSON.parse(raw);return o&&o.date===today()?o:null}catch(e){return null}}
+function save(o){var s=JSON.stringify(o);mem=s;try{localStorage.setItem(KEY,s)}catch(e){note.style.display="block";note.textContent="(This browser won’t save your pick, so it may reset on reload.)"}}
+function find(id){for(var i=0;i<CARDS.length;i++)if(CARDS[i].id===id)return CARDS[i];return null}
+function roll(){var tot=0,i;for(i=0;i<CARDS.length;i++)tot+=CARDS[i].w;var r=Math.random()*tot;
+ for(i=0;i<CARDS.length;i++){r-=CARDS[i].w;if(r<0)return CARDS[i]}return CARDS[0]}
+function rarity(c){return c.gold?"golden":c.nothing?"nothing":c.w===R?"rare":"common"}
+function frontHTML(c){var k=rarity(c);
+ return '<div class="pre">This card is good for…</div><div class="em">'+c.e+'</div>'+
+ '<div class="big'+(c.long||c.t.length>22?' long':'')+'">'+(c.nothing?'absolutely nothing':c.t)+'</div>'+
+ (c.fine?'<div class="fine">'+c.fine+'</div>':'')+
+ '<div class="tag">'+(k==="golden"?'✦ Golden card ✦':k==="rare"?'Rare':k==="nothing"?'Unlucky':'Love card')+'</div>'}
+function fanPos(i,W){var m=i-(N-1)/2,dx=Math.min(52,(W-CW*.62-16)/(N-1));
+ return {x:m*dx,y:m*m*5-8,r:m*8,s:.5}}
+function build(chosenIdx,card,instant){
+ stage.innerHTML="";var W=stage.clientWidth||460;
+ for(var i=0;i<N;i++){var p=fanPos(i,W),b=document.createElement("button");
+  b.className="card";b.type="button";b.setAttribute("aria-label","Face-down card "+(i+1));
+  b.style.setProperty("--i",i);b.style.setProperty("--x",p.x+"px");b.style.setProperty("--y",p.y+"px");
+  b.style.setProperty("--r",p.r+"deg");b.style.setProperty("--s",p.s);b.style.zIndex=i+1;
+  b.innerHTML='<div class="flip"><div class="face back"></div><div class="face front"></div></div>';
+  (function(btn,idx){btn.addEventListener("click",function(){pick(idx)})})(b,i);
+  stage.appendChild(b)}
+ stage.classList.add("ready");
+ if(card){showResult(chosenIdx,card,instant)}
+}
+function chosenScale(){var W=stage.clientWidth||460;return Math.min(1,(W-24)/CW)}
+function showResult(idx,card,instant){
+ var cards=stage.children,el=cards[idx];
+ for(var i=0;i<cards.length;i++){if(i!==idx){cards[i].classList.add("gone");cards[i].tabIndex=-1;cards[i].disabled=true}}
+ el.disabled=true;el.className+=" "+rarity(card);el.style.zIndex=50;
+ el.querySelector(".front").innerHTML=frontHTML(card);
+ el.setAttribute("aria-label","Your card: This card is good for "+(card.nothing?"absolutely nothing":card.t));
+ stage.classList.remove("ready");
+ var center=function(){el.style.setProperty("--x","0px");el.style.setProperty("--y","-4px");el.style.setProperty("--r","0deg");el.style.setProperty("--s",chosenScale());el.style.setProperty("--lift","0px")};
+ if(instant){el.style.transition="none";el.style.animation="none";center();el.classList.add("flipped");
+  var fl=el.querySelector(".flip");fl.style.transition="none";
+  requestAnimationFrame(function(){requestAnimationFrame(function(){el.style.transition="";fl.style.transition=""})});lockUI(card,true)}
+ else{center();setTimeout(function(){el.classList.add("flipped");burst(card)},560);setTimeout(function(){lockUI(card,false)},1500)}
+}
+function lockUI(card,back){
+ sub.textContent=back?"Welcome back, gorgeous. Here’s today’s card 😘":card.nothing?"Oh dear… 😈":card.gold?"A GOLDEN card! Lucky, lucky you ✨":"Your card for today ❤️";
+ msg.textContent=card.nothing?"Cheeky of the universe, isn’t it? 😈":"Screenshot it and claim it, my love 😘";
+ document.body.classList.add("locked");tick();startTimer()}
+var timer=null;
+function pad(n){return(n<10?"0":"")+n}
+function tick(){var now=new Date(),mid=new Date(now.getFullYear(),now.getMonth(),now.getDate()+1,0,0,0,0),s=Math.max(0,Math.floor((mid-now)/1000));
+ clock.textContent=pad(Math.floor(s/3600))+":"+pad(Math.floor(s%3600/60))+":"+pad(s%60);
+ if(mid-now<=0||!load()&&document.body.classList.contains("locked")){reset()}}
+function startTimer(){if(timer)clearInterval(timer);timer=setInterval(tick,1000)}
+function reset(){if(timer)clearInterval(timer);document.body.classList.remove("locked");
+ sub.textContent="A new day, a new card. Choose wisely… or don’t 😏";msg.textContent="";mem=null;build()}
+function burst(card){var set=card.gold?["✨","⭐","💛","✦","🌟"]:card.nothing?["💨","😈","🖤"]:["❤️","💋","❄️","🌹","💖","🍒"],n=card.gold?26:14;
+ for(var i=0;i<n;i++){var s=document.createElement("span");s.className="pop";s.textContent=set[i%set.length];
+  s.style.setProperty("--dx",(Math.random()*340-170)+"px");s.style.setProperty("--dy",(Math.random()*-300-20)+"px");
+  s.style.setProperty("--rot",(Math.random()*120-60)+"deg");s.style.animationDelay=(Math.random()*.35)+"s";
+  stage.appendChild(s);(function(x){setTimeout(function(){x.remove()},2200)})(s)}}
+var busy=false;
+function pick(idx){if(busy||load())return;busy=true;var c=roll();save({date:today(),card:c.id,idx:idx});showResult(idx,c,false);setTimeout(function(){busy=false},1600)}
+/* ambient snow */
+(function(){var h=$("snow");for(var i=0;i<14;i++){var f=document.createElement("span");f.className="flake";f.textContent=i%3?"•":"❄";
+ f.style.left=(Math.random()*100)+"%";f.style.fontSize=(7+Math.random()*9)+"px";f.style.animationDuration=(9+Math.random()*10)+"s";f.style.animationDelay=(-Math.random()*16)+"s";h.appendChild(f)}})();
+/* start */
+var saved=load(),sc=saved&&find(saved.card);
+if(saved&&sc){build(typeof saved.idx==="number"?saved.idx%N:3,sc,true)}else{build()}
+var rz;window.addEventListener("resize",function(){clearTimeout(rz);rz=setTimeout(function(){var s=load(),c=s&&find(s.card);if(s&&c){build(typeof s.idx==="number"?s.idx%N:3,c,true)}else if(!document.body.classList.contains("locked")&&!busy){build()}},150)});
+})();
+</script>
+</body></html>
