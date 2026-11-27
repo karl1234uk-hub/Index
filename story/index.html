@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#070204">
+<meta name="robots" content="noindex">
+<meta name="description" content="A rain-soaked city, two vampires, and a night you pass between you.">
+<title>Our Longest Night</title>
+<link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500;1,600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{background:#070204;-webkit-text-size-adjust:100%}
+body{margin:0;min-height:100vh;min-height:100dvh;color:#f3dcd4;
+font-family:"Cormorant Garamond",Georgia,serif;font-size:20px;line-height:1.45;
+background:radial-gradient(ellipse at 50% 18%,#2e0914 0%,#14040b 52%,#070204 100%)}
+button,input{font-family:inherit;color:inherit}
+button{cursor:pointer}
+::selection{background:#6a1020;color:#fff8f4}
+#rain{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:0}
+.drop{position:absolute;top:-12%;width:1px;background:linear-gradient(transparent,#e7b4bc);animation:fall linear infinite}
+@keyframes fall{0%{transform:translateY(-10vh);opacity:0}12%{opacity:.45}100%{transform:translateY(110vh);opacity:0}}
+#app{position:relative;z-index:1;width:100%;max-width:480px;margin:0 auto;
+padding:calc(18px + env(safe-area-inset-top)) 16px calc(28px + env(safe-area-inset-bottom))}
+.card{border:1px solid rgba(183,110,121,.55);border-radius:16px;
+background:linear-gradient(180deg,rgba(28,7,14,.92),rgba(12,3,7,.94));
+box-shadow:0 0 28px rgba(122,21,51,.28),inset 0 0 40px rgba(0,0,0,.45);
+padding:26px 20px 18px}
+body.is-start #app{min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;justify-content:center}
+.start-card{text-align:center;padding:42px 22px 32px;width:100%}
+.eyebrow{margin:0 0 8px;letter-spacing:.42em;text-transform:uppercase;font-size:12px;color:#e7b4bc}
+.display{font-family:"Great Vibes","Snell Roundhand",cursive;font-weight:400;font-size:clamp(52px,14vw,68px);
+line-height:1.05;margin:0;padding:.12em .12em .18em;
+background:linear-gradient(90deg,#e8b4a0,#f7d9c9,#c98b80);-webkit-background-clip:text;background-clip:text;color:transparent;
+filter:drop-shadow(0 0 14px rgba(183,110,121,.35))}
+.small-display{font-size:clamp(44px,12vw,58px)}
+.tagline{margin:8px 0 0;font-style:italic;font-size:22px;line-height:1.35;color:#d6a99f}
+.note{margin:14px 0 0;font-size:16px;font-style:italic;color:#c4a09a}
+.wordmark{margin:0;text-align:center;font-family:"Great Vibes",cursive;font-size:30px;line-height:1;
+background:linear-gradient(90deg,#e8b4a0,#f7d9c9);-webkit-background-clip:text;background-clip:text;color:transparent}
+.banner{margin:16px 0 8px;padding:12px 12px 10px;text-align:center;border-radius:12px;
+border:1px solid rgba(183,110,121,.45);background:rgba(0,0,0,.28)}
+.turn-karlos .banner{border-color:rgba(180,210,230,.45);box-shadow:inset 0 0 24px rgba(160,196,220,.08)}
+.turn-sara .banner{border-color:rgba(183,110,121,.7);box-shadow:inset 0 0 24px rgba(163,24,47,.16)}
+.mark{display:block;font-family:"Noto Sans Symbols","Noto Sans Symbols2","DejaVu Sans","Segoe UI Symbol",sans-serif;font-size:18px;line-height:1;margin-bottom:4px}
+.turn-karlos .mark{color:#d5e6f2}
+.turn-sara .mark{color:#e7b4bc}
+.turn{margin:0;letter-spacing:.18em;text-transform:uppercase;font-size:15px;font-weight:700}
+.turn-karlos .turn{color:#d5e6f2}
+.turn-sara .turn{color:#f0c4c8}
+.epithet{margin:3px 0 0;font-style:italic;font-size:16px;color:#d6a99f}
+.yours{margin:6px 0 0;font-size:15px;letter-spacing:.14em;text-transform:uppercase;color:#c98b80}
+.kicker{margin:14px 0 0;letter-spacing:.16em;text-transform:uppercase;font-size:12px;color:#e7b4bc}
+h1{margin:6px 0 0;font-weight:600;font-size:clamp(30px,8vw,38px);line-height:1.12;color:#f7d9c9}
+.card p{margin:12px 0 0}
+.card .kicker,.card .tagline,.card .note,.card .wordmark,.card .turn,.card .epithet,.card .yours,.card .shout,.card .ask,.card .hint,.card .tone{margin-top:0}
+.card h1+p,.card .kicker+h1+p{margin-top:14px}
+.card p+p{margin-top:12px}
+em{font-style:italic;color:#f0c4c8}
+.handoff{margin:14px 0 4px;padding:14px 12px 12px;border-radius:12px;text-align:center;
+border:1px solid #a3182f;background:linear-gradient(180deg,#3a0a14,#14060a);
+box-shadow:0 0 22px rgba(163,24,47,.25)}
+.shout{margin:0;font-size:26px;line-height:1.15;color:#f7d9c9}
+.ask{margin:4px 0 12px;font-style:italic;font-size:20px;color:#f0c4c8}
+.hint{margin:10px 0 0;font-size:15px;font-style:italic;color:#d6a99f}
+.primary,.ghost,.choice,.texty{
+display:block;width:100%;border-radius:10px;text-align:center}
+.primary{margin-top:14px;padding:14px 16px;font-size:20px;letter-spacing:.04em;
+color:#f7d9c9;background:linear-gradient(180deg,#7a1c32,#3d0a17);border:1px solid #e7b4bc;
+box-shadow:0 0 18px rgba(163,24,47,.35)}
+.primary:hover,.primary:focus-visible{background:linear-gradient(180deg,#8f243c,#4a0e1c)}
+.primary:active{transform:translateY(1px)}
+.primary.is-done{background:linear-gradient(180deg,#245c45,#123328);border-color:#b7d8c8}
+.ghost{margin-top:8px;padding:12px 16px;font-size:18px;
+color:#f3dcd4;background:transparent;border:1px solid rgba(231,180,188,.55)}
+.ghost:active{background:rgba(163,24,47,.25)}
+.linkbox{display:block;width:100%;margin-top:10px;padding:10px 8px;font-size:16px;text-align:center;
+background:#090205;border:1px solid #5c2430;border-radius:8px;color:#f7d9c9}
+.choices{margin-top:18px;display:flex;flex-direction:column;gap:10px}
+.choice{display:flex;align-items:flex-start;gap:12px;text-align:left;padding:14px 14px;
+background:rgba(8,2,4,.55);border:1px solid rgba(183,110,121,.55);border-radius:12px;font-size:19px;line-height:1.3}
+.turn-karlos .choice{border-color:rgba(180,210,230,.4)}
+.choice:hover,.choice:focus-visible{border-color:#f0c4c8;box-shadow:0 0 16px rgba(163,24,47,.28)}
+.turn-karlos .choice:hover,.turn-karlos .choice:focus-visible{border-color:#d5e6f2;box-shadow:0 0 16px rgba(180,210,230,.2)}
+.choice:active{transform:translateY(1px)}
+.num{flex:0 0 auto;font-size:12px;letter-spacing:.14em;color:#e7b4bc;padding-top:4px}
+.turn-karlos .num{color:#d5e6f2}
+.label{flex:1}
+.sofar{margin-top:18px;border-top:1px solid rgba(183,110,121,.35);padding-top:8px}
+.sofar summary{cursor:pointer;letter-spacing:.12em;text-transform:uppercase;font-size:13px;color:#e7b4bc;padding:8px 0}
+.sofar ol{margin:8px 0 0;padding:0 0 0 18px}
+.sofar li{margin:0 0 10px;font-size:17px;color:#e6d0c8}
+.who{display:block;font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:#c98b80}
+.seal{width:74px;height:74px;margin:16px auto 8px;border-radius:50%;
+display:flex;align-items:center;justify-content:center;font-size:28px;color:#f7d9c9;
+font-family:"Noto Sans Symbols","DejaVu Sans",serif;
+border:1px solid #e7b4bc;background:radial-gradient(circle,#7a1c32,#1a060b);
+box-shadow:0 0 18px rgba(163,24,47,.45)}
+.tone{text-align:center;letter-spacing:.28em;text-transform:uppercase;font-size:13px;color:#f0c4c8;margin:0 0 8px}
+.is-ending h1,.is-ending .kicker,.is-ending .tone{text-align:center}
+.restart{margin-top:8px}
+footer{margin-top:8px;text-align:center}
+.texty{margin-top:16px;padding:8px;background:none;border:0;font-size:16px;font-style:italic;color:#c98b80;text-decoration:underline;text-underline-offset:3px}
+.sign{font-family:"Great Vibes",cursive;font-size:26px;color:#c98b80;text-shadow:0 0 10px rgba(183,110,121,.45);margin:8px 0 0}
+button:focus-visible,summary:focus-visible,.linkbox:focus-visible{outline:1px solid #f0c4c8;outline-offset:3px}
+@media (prefers-reduced-motion:reduce){
+.drop{animation:none;display:none}
+.primary:active,.choice:active{transform:none}
+}
+</style>
+</head>
+<body>
+<div id="rain" aria-hidden="true"></div>
+<main id="app"></main>
+<script src="story.js"></script>
+<script src="game.js"></script>
+</body>
+</html>
